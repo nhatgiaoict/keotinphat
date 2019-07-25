@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.1.1" />
+    <PackageReference Include="EPPlus.Core" Version="1.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LGCoreApp.Data.EF\LGCoreApp.Data.EF.csproj" />
+    <ProjectReference Include="..\LGCoreApp.Data\LGCoreApp.Data.csproj" />
+    <ProjectReference Include="..\LGCoreApp.Utilities\LGCoreApp.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>
