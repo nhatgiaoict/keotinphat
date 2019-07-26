@@ -95,6 +95,7 @@
             mm = "0" + mm;
         if (ss < 10)
             ss = "0" + ss;
+        console.log("second:"+day + "/" + month + "/" + year + " " + hh + ":" + mm + ":" + ss);
         return day + "/" + month + "/" + year + " " + hh + ":" + mm + ":" + ss;
     },
     startLoading: function () {

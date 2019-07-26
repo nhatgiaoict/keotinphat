@@ -1,7 +1,6 @@
-﻿var blogController = function () {
-
+﻿var funcController = function () {
     this.initialize = function () {
-        //loadCategories();
+        loadParents();
         loadData();
         registerEvents();
         registerControls();
@@ -14,12 +13,8 @@
             ignore: [],
             lang: 'vi',
             rules: {
-                txtNameM: { required: true },
-                ddlCategoryIdM: { required: true },
-                txtPriceM: {
-                    required: true,
-                    number: true
-                }
+                txtName: { required: true },
+                txtURL: { required: true },
             }
         });
         //todo: binding events to controls
@@ -41,8 +36,9 @@
 
         $("#btnCreate").on('click', function () {
             resetFormMaintainance();
-            //initTreeDropDownCategory();
+            initTreeDropDownParent();
             $('#modal-add-edit').modal('show');
+
         });
 
         $('body').on('click', '.btn-edit', function (e) {
@@ -54,17 +50,16 @@
         $('body').on('click', '.btn-delete', function (e) {
             e.preventDefault();
             var that = $(this).data('id');
-            deleteBlog(that);
+            deleteFunction(that);
         });
 
         $('#btnSave').on('click', function (e) {
-            saveBlog(e);
+            saveFunction(e);
         });
+
     }
 
     function registerControls() {
-        CKEDITOR.replace('txtContent', {});
-
         //Fix: cannot click on element ck in modal
         $.fn.modal.Constructor.prototype.enforceFocus = function () {
             $(document)
@@ -83,52 +78,34 @@
 
     }
 
-    function saveBlog(e) {
+    function saveFunction(e) {
         if ($('#frmMaintainance').valid()) {
             e.preventDefault();
             var id = $('#hidIdM').val();
-            var name = $('#txtNameM').val();
-            //var categoryId = $('#ddlCategoryIdM').combotree('getValue');
-
-            var description = $('#txtDescM').val();
-
-            var image = $('#txtImageM').val();
-
-            var tags = $('#txtTagM').val();
-            var seoKeyword = $('#txtMetakeywordM').val();
-            var seoMetaDescription = $('#txtMetaDescriptionM').val();
-            var seoPageTitle = $('#txtSeoPageTitleM').val();
-            var seoAlias = $('#txtSeoAliasM').val();
-
-            var content = CKEDITOR.instances.txtContent.getData();
+            var name = $('#txtName').val();
+            var url = $('#txtURL').val();
+            var parentId = $('#ddlParent').combotree('getValue');
+            var icon = $('#txtIconCSS').val();
+            var sortOrder = $('#txtSortOrder').val();
             var status = $('#ckStatusM').prop('checked') == true ? 1 : 0;
-            var hot = $('#ckHotM').prop('checked');
-            var showHome = $('#ckShowHomeM').prop('checked');
-
             $.ajax({
                 type: "POST",
-                url: "/Admin/Blog/SaveEntity",
+                url: "/Admin/Function/SaveEntity",
                 data: {
                     Id: id,
                     Name: name,
-                    Image: image,
-                    Description: description,
-                    Content: content,
-                    HomeFlag: showHome,
-                    HotFlag: hot,
-                    Tags: tags,
+                    ParentId: parentId,
+                    URL: url,
+                    IconCss: icon,
+                    SortOrder: sortOrder,
                     Status: status,
-                    SeoPageTitle: seoPageTitle,
-                    SeoAlias: seoAlias,
-                    SeoKeywords: seoKeyword,
-                    SeoDescription: seoMetaDescription
                 },
                 dataType: "json",
                 beforeSend: function () {
                     lg.startLoading();
                 },
                 success: function (response) {
-                    lg.notify('Update blog successful', 'success');
+                    lg.notify('Update function successful', 'success');
                     $('#modal-add-edit').modal('hide');
                     resetFormMaintainance();
 
@@ -136,7 +113,7 @@
                     loadData(true);
                 },
                 error: function () {
-                    lg.notify('Has an error in save bog progress', 'error');
+                    lg.notify('Has an error in save function progress', 'error');
                     lg.stopLoading();
                 }
             });
@@ -144,12 +121,12 @@
         }
     }
 
-    function deleteBlog(id) {
+    function deleteFunction(id) {
         lg.confirm('Are you sure to delete?', function () {
             $.ajax({
                 type: "POST",
-                url: "/Admin/Blog/Delete",
-                data: { id: id },
+                url: "/Admin/Function/Delete",
+                data: { id: that },
                 dataType: "json",
                 beforeSend: function () {
                     lg.startLoading();
@@ -170,7 +147,7 @@
     function loadDetails(that) {
         $.ajax({
             type: "GET",
-            url: "/Admin/Blog/GetById",
+            url: "/Admin/Function/GetById",
             data: { id: that },
             dataType: "json",
             beforeSend: function () {
@@ -179,21 +156,12 @@
             success: function (response) {
                 var data = response;
                 $('#hidIdM').val(data.Id);
-                $('#txtNameM').val(data.Name);
-
-                $('#txtDescM').val(data.Description);
-                $('#txtImageM').val(data.ThumbnailImage);
-
-                $('#txtTagM').val(data.Tags);
-                $('#txtMetakeywordM').val(data.SeoKeywords);
-                $('#txtMetaDescriptionM').val(data.SeoDescription);
-                $('#txtSeoPageTitleM').val(data.SeoPageTitle);
-                $('#txtSeoAliasM').val(data.SeoAlias);
-
-                CKEDITOR.instances.txtContent.setData(data.Content);
+                $('#txtName').val(data.Name);
+                initTreeDropDownParent(data.ParentId);
+                $('#txtURL').val(data.URL);
+                $('#txtIconCSS').val(data.IconCss);
+                $('#txtSortOrder').val(data.SortOrder);
                 $('#ckStatusM').prop('checked', data.Status == 1);
-                $('#ckHotM').prop('checked', data.HotFlag);
-                $('#ckShowHomeM').prop('checked', data.HomeFlag);
 
                 $('#modal-add-edit').modal('show');
                 lg.stopLoading();
@@ -206,25 +174,62 @@
         });
     }
 
+    function initTreeDropDownParent(selectedId) {
+        $.ajax({
+            url: "/Admin/Function/GetParent",
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function (response) {
+                var data = [];
+                $.each(response, function (i, item) {
+                    data.push({
+                        id: item.Id,
+                        text: item.Name,
+                        parentId: item.ParentId,
+                        sortOrder: item.SortOrder
+                    });
+                });
+                var arr = lg.unflattern(data);
+                $('#ddlParent').combotree({
+                    data: arr
+                });
+
+                if (selectedId != undefined) {
+                    $('#ddlCategoryIdM').combotree('setValue', selectedId);
+                }
+            }
+        });
+    }
+
     function resetFormMaintainance() {
         $('#hidIdM').val(0);
-        $('#txtNameM').val('');
+        $('#txtName').val('');
+        initTreeDropDownParent('');
 
-        $('#txtDescM').val('');
+        $('#txtURL').val('');
+        $('#txtIconCSS').val('');
 
-        $('#txtImageM').val('');
-
-        $('#txtTagM').val('');
-        $('#txtMetakeywordM').val('');
-        $('#txtMetaDescriptionM').val('');
-        $('#txtSeoPageTitleM').val('');
-        $('#txtSeoAliasM').val('');
-
-        //CKEDITOR.instances.txtContentM.setData('');
+        $('#txtSortOrder').val('');
         $('#ckStatusM').prop('checked', true);
-        $('#ckHotM').prop('checked', false);
-        $('#ckShowHomeM').prop('checked', false);
+    }
 
+    function loadParents() {
+        $.ajax({
+            type: 'GET',
+            url: '/admin/function/GetParents',
+            dataType: 'json',
+            success: function (response) {
+                var render = "<option value=''>--Select parent--</option>";
+                $.each(response, function (i, item) {
+                    render += "<option value='" + item.Id + "'>" + item.Name + "</option>"
+                });
+            },
+            error: function (status) {
+                console.log(status);
+                lg.notify('Cannot loading parent data', 'error');
+            }
+        });
     }
 
     function loadData(isPageChanged) {
@@ -237,7 +242,7 @@
                 page: lg.configs.pageIndex,
                 pageSize: lg.configs.pageSize
             },
-            url: '/admin/blog/GetAllPaging',
+            url: '/admin/function/GetAllPaging',
             dataType: 'json',
             success: function (response) {
                 console.log(response);
@@ -245,15 +250,12 @@
                     render += Mustache.render(template, {
                         Id: item.Id,
                         Name: item.Name,
-                        Description: item.Description,
-                        Image: item.Image == null ? '<img src="/admin-side/images/user.png" width=25' : '<img src="' + item.Image + '" width=25 />',
-                        ViewCount: item.ViewCount,
-                        HotFlag: lg.getStatus(item.HotFlag),
-                        HomeFlag: lg.getStatus(item.HomeFlag),
-                        CreatedDate: lg.dateFormatJson(item.DateCreated),
+                        URL: item.URL,
+                        Parent: item.ParentId,
+                        SortOrder: item.SortOrder,
                         Status: lg.getStatus(item.Status)
                     });
-
+                    
                 });
                 $('#lblTotalRecords').text(response.RowCount);
                 if (render != '') {

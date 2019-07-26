@@ -37,8 +37,8 @@
             loadData();
         });
         $("#ddl-show-page").on('change', function () {
-            tedu.configs.pageSize = $(this).val();
-            tedu.configs.pageIndex = 1;
+            lg.configs.pageSize = $(this).val();
+            lg.configs.pageIndex = 1;
             loadData(true);
         });
 
@@ -58,7 +58,7 @@
                 data: { id: that },
                 dataType: "json",
                 beforeSend: function () {
-                    tedu.startLoading();
+                    lg.startLoading();
                 },
                 success: function (response) {
                     var data = response;
@@ -73,12 +73,12 @@
 
                     disableFieldEdit(true);
                     $('#modal-add-edit').modal('show');
-                    tedu.stopLoading();
+                    lg.stopLoading();
 
                 },
                 error: function () {
-                    tedu.notify('Có lỗi xảy ra', 'error');
-                    tedu.stopLoading();
+                    lg.notify('Có lỗi xảy ra', 'error');
+                    lg.stopLoading();
                 }
             });
         });
@@ -115,19 +115,19 @@
                     },
                     dataType: "json",
                     beforeSend: function () {
-                        tedu.startLoading();
+                        lg.startLoading();
                     },
                     success: function () {
-                        tedu.notify('Save user succesful', 'success');
+                        lg.notify('Save user succesful', 'success');
                         $('#modal-add-edit').modal('hide');
                         resetFormMaintainance();
 
-                        tedu.stopLoading();
+                        lg.stopLoading();
                         loadData(true);
                     },
                     error: function () {
-                        tedu.notify('Has an error', 'error');
-                        tedu.stopLoading();
+                        lg.notify('Has an error', 'error');
+                        lg.stopLoading();
                     }
                 });
             }
@@ -137,22 +137,22 @@
         $('body').on('click', '.btn-delete', function (e) {
             e.preventDefault();
             var that = $(this).data('id');
-            tedu.confirm('Are you sure to delete?', function () {
+            lg.confirm('Are you sure to delete?', function () {
                 $.ajax({
                     type: "POST",
                     url: "/Admin/User/Delete",
                     data: { id: that },
                     beforeSend: function () {
-                        tedu.startLoading();
+                        lg.startLoading();
                     },
                     success: function () {
-                        tedu.notify('Delete successful', 'success');
-                        tedu.stopLoading();
+                        lg.notify('Delete successful', 'success');
+                        lg.stopLoading();
                         loadData();
                     },
                     error: function () {
-                        tedu.notify('Has an error', 'error');
-                        tedu.stopLoading();
+                        lg.notify('Has an error', 'error');
+                        lg.stopLoading();
                     }
                 });
             });
@@ -215,12 +215,12 @@
             data: {
                 categoryId: $('#ddl-category-search').val(),
                 keyword: $('#txt-search-keyword').val(),
-                page: tedu.configs.pageIndex,
-                pageSize: tedu.configs.pageSize
+                page: lg.configs.pageIndex,
+                pageSize: lg.configs.pageSize
             },
             dataType: "json",
             beforeSend: function () {
-                tedu.startLoading();
+                lg.startLoading();
             },
             success: function (response) {
                 var template = $('#table-template').html();
@@ -232,8 +232,8 @@
                             Id: item.Id,
                             UserName: item.UserName,
                             Avatar: item.Avatar === undefined ? '<img src="/admin-side/images/user.png" width=25 />' : '<img src="' + item.Avatar + '" width=25 />',
-                            DateCreated: tedu.dateTimeFormatJson(item.DateCreated),
-                            Status: tedu.getStatus(item.Status)
+                            DateCreated: lg.dateTimeFormatJson(item.DateCreated),
+                            Status: lg.getStatus(item.Status)
                         });
                     });
                     $("#lbl-total-records").text(response.RowCount);
@@ -250,7 +250,7 @@
                 else {
                     $('#tbl-content').html('');
                 }
-                tedu.stopLoading();
+                lg.stopLoading();
             },
             error: function (status) {
                 console.log(status);
@@ -259,7 +259,7 @@
     };
 
     function wrapPaging(recordCount, callBack, changePageSize) {
-        var totalsize = Math.ceil(recordCount / tedu.configs.pageSize);
+        var totalsize = Math.ceil(recordCount / lg.configs.pageSize);
         //Unbind pagination if it existed or click change pagesize
         if ($('#paginationUL a').length === 0 || changePageSize === true) {
             $('#paginationUL').empty();
@@ -275,7 +275,7 @@
             next: 'Tiếp',
             last: 'Cuối',
             onPageClick: function (event, p) {
-                tedu.configs.pageIndex = p;
+                lg.configs.pageIndex = p;
                 setTimeout(callBack(), 200);
             }
         });
